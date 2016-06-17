@@ -1,9 +1,10 @@
 package clone.detection.actions;
 
-import java.io.IOException;
+import java.util.Calendar;
 
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.jface.action.IAction;
+import org.eclipse.jface.text.ITextSelection;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.ui.IEditorPart;
@@ -12,6 +13,9 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.IWorkbenchWindowActionDelegate;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.part.FileEditorInput;
+
+import clone.detection.main.CloneDetectionMain;
 
 /**
  * Our sample action implements workbench action delegate.
@@ -42,78 +46,71 @@ public class Action implements IWorkbenchWindowActionDelegate {
 		IEditorPart editor = page.getActiveEditor();
 		ISelectionProvider selectionProvider = editor.getEditorSite().getSelectionProvider();
 		ISelection selection = selectionProvider.getSelection();
-		String project = getSrcRoot(editor);
-		projectPath = project;
+		String targetProject = getSrcRoot(editor);
+		//projectPath = project;
 		String fileName = getFileName(editor);
 		int selectedLine = getSelectedLine(selection);
-		String args[] = new String[8];
-		args[0] = project;
-		args[1] = "C:\\a\\text.txt";
-		args[2] = "java";
-		args[3] = "30";
-		args[4] = "2";
-		args[5] = "C:\\a";
-		args[6] = fileName;
-		args[7] = (new StringBuilder()).append(selectedLine).toString();
-		try
-		{
-			Main.detect(args);
-		} catch (IOException e)
-		{
-			e.printStackTrace();
+		int minimalTokenLength = 30;
+		String resultFile = createResultFile(targetProject);
+		String workingDirectory = "C:\\CodeChangeSupporter\\tmp";
+		CloneDetectionMain.detectClones(targetProject, minimalTokenLength, fileName, selectedLine, resultFile, workingDirectory);
+	}
+
+	private String createResultFile(String targetProject) {
+		Calendar c = Calendar.getInstance();
+		int year = c.get(Calendar.YEAR);
+		int month = c.get(Calendar.MONTH) + 1;
+		int day = c.get(Calendar.DAY_OF_MONTH);
+		int hour = c.get(Calendar.HOUR_OF_DAY);
+		int minute = c.get(Calendar.MINUTE);
+		int second = c.get(Calendar.SECOND);
+		StringBuilder sb = new StringBuilder("C:\\CodeChangeSupporter\\log_");
+		sb.append(year);
+		sb.append(normalize(month));
+		sb.append(normalize(day)).append("_");
+		sb.append(normalize(hour));
+		sb.append(normalize(minute));
+		sb.append(normalize(second)).append(".txt");
+		return sb.toString();
+	}
+
+	private String normalize(int i) {
+		StringBuilder sb = new StringBuilder();
+		if (i < 10) {
+			sb.append("0");
+		}
+		sb.append(i);
+		return sb.toString();
+	}
+
+	private String getSrcRoot(IEditorPart editor) {
+		org.eclipse.ui.IEditorInput input = editor.getEditorInput();
+		String path = ((FileEditorInput) input).getPath().toOSString();
+		int index = path.indexOf("src") + "src".length();
+		return path.substring(0, index);
+	}
+
+	private int getSelectedLine(ISelection selection) {
+		if (selection instanceof ITextSelection) {
+			ITextSelection textSelection = (ITextSelection) selection;
+			return textSelection.getStartLine() + 1;
+		} else {
+			return 0;
 		}
 	}
 
-	private String getSrcRoot(IEditorPart editor)
-    {
-        org.eclipse.ui.IEditorInput input = editor.getEditorInput();
-        String path = ((FileEditorInput)input).getPath().toOSString();
-        int index = path.indexOf("src") + "src".length();
-        return path.substring(0, index);
-    }
+	private String getFileName(IEditorPart editor) {
+		org.eclipse.ui.IEditorInput input = editor.getEditorInput();
+		IPath path = ((FileEditorInput) input).getPath();
+		return path.toOSString();
+	}
 
-    private int getSelectedLine(ISelection selection)
-    {
-        if(selection instanceof ITextSelection)
-        {
-            ITextSelection textSelection = (ITextSelection)selection;
-            return textSelection.getStartLine() + 1;
-        } else
-        {
-            return 0;
-        }
-    }
-
-    private String getFileName(IEditorPart editor)
-    {
-        org.eclipse.ui.IEditorInput input = editor.getEditorInput();
-        IPath path = ((FileEditorInput)input).getPath();
-        return path.toOSString();
-    }
-
-	/**
-	 * Selection in the workbench has been changed. We
-	 * can change the state of the 'real' action here
-	 * if we want, but this can only happen after
-	 * the delegate has been created.
-	 * @see IWorkbenchWindowActionDelegate#selectionChanged
-	 */
 	public void selectionChanged(IAction action, ISelection selection) {
 	}
 
-	/**
-	 * We can use this method to dispose of any system
-	 * resources we previously allocated.
-	 * @see IWorkbenchWindowActionDelegate#dispose
-	 */
 	public void dispose() {
 	}
 
-	/**
-	 * We will cache window object in order to
-	 * be able to provide parent shell for the message dialog.
-	 * @see IWorkbenchWindowActionDelegate#init
-	 */
 	public void init(IWorkbenchWindow window) {
 	}
 }
