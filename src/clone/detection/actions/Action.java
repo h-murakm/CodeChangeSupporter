@@ -53,6 +53,8 @@ public class Action implements IWorkbenchWindowActionDelegate {
 		int minimalTokenLength = 30;
 		String resultFile = createResultFile(targetProject);
 		String workingDirectory = "C:\\CodeChangeSupporter\\tmp";
+//		File rootDir = new File("C:\\CodeChangeSupporter");
+//		rootDir.mkdir();
 		CloneDetectionMain.detectClones(targetProject, minimalTokenLength, fileName, selectedLine, resultFile, workingDirectory);
 	}
 
