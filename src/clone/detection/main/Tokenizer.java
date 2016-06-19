@@ -28,8 +28,9 @@ public class Tokenizer implements Runnable {
 		ASTParser parser = ASTParser.newParser(AST.JLS4);
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setSource(source);
-		final CompilationUnit unit = (CompilationUnit) parser.createAST(new NullProgressMonitor());
+		CompilationUnit unit = (CompilationUnit) parser.createAST(new NullProgressMonitor());
 		MethodParser mp = new MethodParser(unit, source);
+		//MethodParser2 mp = new MethodParser2(unit, source);
 		unit.accept(mp);
 	}
 
