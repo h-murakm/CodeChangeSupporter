@@ -78,10 +78,12 @@ public class MethodParser extends ASTVisitor {
 	}
 
 	private String removeUnnecessaryTokens(String methodTokens) {
-		String lineCommentExpression = "//.*\n";
-		methodTokens = methodTokens.replaceAll(lineCommentExpression, "");
-		String blockCommentExpression = "/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/";
-		methodTokens = methodTokens.replaceAll(blockCommentExpression, "");
+//		String lineCommentExpression = "//.*\n";
+//		methodTokens = methodTokens.replaceAll(lineCommentExpression, "");
+//		String blockCommentExpression = "/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/";
+//		methodTokens = methodTokens.replaceAll(blockCommentExpression, "");
+		String commentExpression = "(/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/)|(//.*)";
+		methodTokens = methodTokens.replaceAll(commentExpression, "");
 		String doubleQuoteStringExpression = "\".*\"";
 		methodTokens = methodTokens.replaceAll(doubleQuoteStringExpression, "doubleQuoteString");
 		String singleQuoteStringExpression = "\'.*\'";
