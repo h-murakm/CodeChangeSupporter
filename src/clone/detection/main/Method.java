@@ -8,14 +8,16 @@ public class Method {
 	int startLine;
 	int endLine;
 	ArrayList<String> tokenList = new ArrayList<String>();
+	ArrayList<String> userDefinedNameList = new ArrayList<String>();
 	int hash;
 
-	public Method(String fileName, String methodName, int startLine, int endLine, ArrayList<String> tokenList, int hash) {
+	public Method(String fileName, String methodName, int startLine, int endLine, ArrayList<String> tokenList, ArrayList<String> userDefinedNameList, int hash) {
 		this.fileName = fileName;
 		this.methodName = methodName;
 		this.startLine = startLine;
 		this.endLine = endLine;
 		this.tokenList = tokenList;
+		this.userDefinedNameList = userDefinedNameList;
 		this.hash = hash;
 	}
 
@@ -51,6 +53,14 @@ public class Method {
 		this.endLine = endLine;
 	}
 
+	public ArrayList<String> getUserDefinedNameList() {
+		return userDefinedNameList;
+	}
+
+	public void setUserDefinedNameList(ArrayList<String> userDefinedNameList) {
+		this.userDefinedNameList = userDefinedNameList;
+	}
+
 	public ArrayList<String> getTokenList() {
 		return tokenList;
 	}
@@ -59,11 +69,11 @@ public class Method {
 		this.tokenList = tokenList;
 	}
 
-	public int getHash(){
+	public int getHash() {
 		return hash;
 	}
 
-	public void setHash(int hash){
+	public void setHash(int hash) {
 		this.hash = hash;
 	}
 }

@@ -11,14 +11,18 @@ import org.eclipse.jdt.core.dom.MethodDeclaration;
 public class MethodParser extends ASTVisitor {
 
 	CompilationUnit compilationUnit;
-	private char[] source;
+	String fileName;
+	String targetFileName;
+	int targetLine;
 	ArrayList<String> reservedWord = new ArrayList<String>();
 	HashMap<String, Integer> userDefinedNameMap;
 
-	public MethodParser(CompilationUnit compilationUnit, char[] source) {
+	public MethodParser(CompilationUnit compilationUnit, String fileName, String targetFileName, int targetLine) {
 		super();
 		this.compilationUnit = compilationUnit;
-		this.source = source;
+		this.fileName = fileName;
+		this.targetFileName = targetFileName;
+		this.targetLine = targetLine;
 		initReservedWordList();
 	}
 
@@ -31,12 +35,17 @@ public class MethodParser extends ASTVisitor {
 		int endLine = compilationUnit.getLineNumber(node.getStartPosition() + node.getLength());
 		String methodName = node.getName().toString();
 
+		boolean isTargetMethod = false;
+		if (fileName.equals(targetFileName) && startLine <= targetLine && targetLine <= endLine) {
+			isTargetMethod = true;
+		}
+
 		//		System.out.println("--");
 		//		System.out.println(node.toString());
 		//		System.out.println("--");
 
 		ArrayList<String> tokenList = new ArrayList<String>();
-		ArrayList<String> a = new ArrayList<String>();
+		ArrayList<String> userDefinedNameList = new ArrayList<String>();
 		//		tokenList.add(node.getReturnType2().toString());
 		//		tokenList.add(getNormalizedUserDefinedName(methodName));
 
@@ -51,37 +60,44 @@ public class MethodParser extends ASTVisitor {
 				// do nothing
 			} else if (isReservedWord(token)) {
 				tokenList.add(token);
-				a.add(token);
 			} else if (isSymbol(token)) {
 				tokenList.add(token);
-				a.add(token);
-			} else if(isModifier(token)){
+			} else if (isModifier(token)) {
 				// do nothing
-			}else{
+			} else {
+				userDefinedNameList.add(token);
 				String normalizedUserDefinedName = getNormalizedUserDefinedName(token);
 				tokenList.add(normalizedUserDefinedName);
-				a.add(token);
 			}
 		}
 
-//		for(String b : a){
-//			System.out.print(b);
-//			System.out.print(" ");
-//		}
-//		System.out.println();
-//		for(String b : tokenList){
-//			System.out.print(b);
-//			System.out.print(" ");
-//		}
-//		System.out.println();
+		int hash = tokenList.hashCode();
+		Method method = new Method(methodTokens, methodName, startLine, endLine, tokenList, userDefinedNameList, hash);
+		if (isTargetMethod) {
+			CloneDetectionMain.targetMethod = method;
+		} else {
+			addMethodToMap(hash, method);
+		}
 		return super.visit(node);
 	}
 
+	private synchronized void addMethodToMap(int hash, Method method) {
+		if (CloneDetectionMain.map.containsKey(hash)) {
+			ArrayList<Method> list = CloneDetectionMain.map.get(hash);
+			list.add(method);
+			CloneDetectionMain.map.put(hash, list);
+		} else {
+			ArrayList<Method> list = new ArrayList<Method>();
+			list.add(method);
+			CloneDetectionMain.map.put(hash, list);
+		}
+	}
+
 	private String removeUnnecessaryTokens(String methodTokens) {
-//		String lineCommentExpression = "//.*\n";
-//		methodTokens = methodTokens.replaceAll(lineCommentExpression, "");
-//		String blockCommentExpression = "/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/";
-//		methodTokens = methodTokens.replaceAll(blockCommentExpression, "");
+		//		String lineCommentExpression = "//.*\n";
+		//		methodTokens = methodTokens.replaceAll(lineCommentExpression, "");
+		//		String blockCommentExpression = "/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/";
+		//		methodTokens = methodTokens.replaceAll(blockCommentExpression, "");
 		String commentExpression = "(/\\*([^*]|[\\r\\n]|(\\*+([^*/]|[\\r\\n])))*\\*+/)|(//.*)";
 		methodTokens = methodTokens.replaceAll(commentExpression, "");
 		String doubleQuoteStringExpression = "\".*\"";
@@ -102,10 +118,10 @@ public class MethodParser extends ASTVisitor {
 		return "$" + value;
 	}
 
-	private boolean isReservedWord(String str){
-		if(reservedWord.contains(str)){
+	private boolean isReservedWord(String str) {
+		if (reservedWord.contains(str)) {
 			return true;
-		}else{
+		} else {
 			return false;
 		}
 	}

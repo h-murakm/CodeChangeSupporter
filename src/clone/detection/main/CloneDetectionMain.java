@@ -1,7 +1,6 @@
 package clone.detection.main;
 
 import java.io.File;
-import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
@@ -11,12 +10,13 @@ public class CloneDetectionMain {
 
 	static HashMap<Integer, ArrayList<Method>> map;
 	static ArrayList<String> fileNameList;
+	static Method targetMethod;
 
-	public static void detectClones(String targetProject, int minimalTokenLength, String fileName, int selectedLine, String resultFile, String workingDirectory) {
+	public static void detectClones(String targetProject, int minimalTokenLength, String targetFileName, int targetLine, String resultFile, String workingDirectory) {
 		System.out.println(targetProject);
 		System.out.println(minimalTokenLength);
-		System.out.println(fileName);
-		System.out.println(selectedLine);
+		System.out.println(targetFileName);
+		System.out.println(targetLine);
 		System.out.println(resultFile);
 		System.out.println(workingDirectory);
 
@@ -25,10 +25,19 @@ public class CloneDetectionMain {
 
 		FileCollector.listPath(new File(targetProject));
 		int threadsNum = Runtime.getRuntime().availableProcessors();
-		ExecutorService service = Executors.newFixedThreadPool(1);
+		ExecutorService tokenizationService = Executors.newFixedThreadPool(threadsNum);
 		for (String file : fileNameList) {
-			service.execute(new Tokenizer(file));
+			tokenizationService.execute(new Tokenizer(file, targetFileName, targetLine));
 		}
+		tokenizationService.shutdown();
+        while(!tokenizationService.isTerminated()){};
+
+        int hash = targetMethod.getHash();
+        ArrayList<Method> cloneMethods = map.get(hash);
+        for(Method method : cloneMethods){
+        	System.out.println(method.getTokenList().toString());
+        }
+
 	}
 
 }

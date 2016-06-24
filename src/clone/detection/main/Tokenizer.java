@@ -14,12 +14,16 @@ import org.eclipse.jdt.core.dom.CompilationUnit;
 public class Tokenizer implements Runnable {
 
 	String fileName;
+	String targetFileName;
+	int targetLine;
 	public static final char QUOTE = '\'';
 	public static final char DOUBLE_QUOTE = '\"';
 	final ArrayList<String> reservedWord = new ArrayList<String>();
 
-	Tokenizer(String file) {
+	Tokenizer(String file, String targetFileName, int targetLine) {
 		this.fileName = file;
+		this.targetFileName = targetFileName;
+		this.targetLine = targetLine;
 	}
 
 	@Override
@@ -29,7 +33,7 @@ public class Tokenizer implements Runnable {
 		parser.setKind(ASTParser.K_COMPILATION_UNIT);
 		parser.setSource(source);
 		CompilationUnit unit = (CompilationUnit) parser.createAST(new NullProgressMonitor());
-		MethodParser mp = new MethodParser(unit, source);
+		MethodParser mp = new MethodParser(unit, fileName, targetFileName, targetLine);
 		//MethodParser2 mp = new MethodParser2(unit, source);
 		unit.accept(mp);
 	}
