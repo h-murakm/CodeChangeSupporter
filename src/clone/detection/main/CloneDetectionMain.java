@@ -6,11 +6,19 @@ import java.util.HashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+
 public class CloneDetectionMain {
 
 	static HashMap<Integer, ArrayList<Method>> map;
 	static ArrayList<String> fileNameList;
 	static Method targetMethod;
+	public static ArrayList<Method> cloneMethods;
 
 	public static void detectClones(String targetProject, int minimalTokenLength, String targetFileName, int targetLine, String resultFile, String workingDirectory) {
 		System.out.println(targetProject);
@@ -30,14 +38,31 @@ public class CloneDetectionMain {
 			tokenizationService.execute(new Tokenizer(file, targetFileName, targetLine));
 		}
 		tokenizationService.shutdown();
-        while(!tokenizationService.isTerminated()){};
+		while (!tokenizationService.isTerminated()) {
+		}
+		;
 
-        int hash = targetMethod.getHash();
-        ArrayList<Method> cloneMethods = map.get(hash);
-        for(Method method : cloneMethods){
-        	System.out.println(method.getTokenList().toString());
-        }
+		int hash = targetMethod.getHash();
+		cloneMethods = map.get(hash);
 
+		createCloneView();
+
+	}
+
+	private static void createCloneView() {
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+		IWorkbenchPage page = window.getActivePage();
+		//IViewPart view = page.findView("cloneView");
+		System.out.println("a");
+		//page.hideView(view);
+		System.out.println("b");
+		try {
+			IViewPart view = page.showView("cloneView");
+		} catch (PartInitException e) {
+			e.printStackTrace();
+		}
+		System.out.println("c");
 	}
 
 }
